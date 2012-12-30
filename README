@@ -1,0 +1,32 @@
+Implement sequential read/write lock.
+
+When there are multiple writer threads a pair of calls
+seqlock_write_lock_spin()/seqlock_write_unlock() must be used.  As
+the name suggests, seqlock_write_lock_spin() may spin waiting for
+other writer thread to complete the writing.  When there's only one
+writer thread (or several threads perform the writing in a
+synchronized critical section) a more efficient pair of calls
+seqlock_write_lock_spin()/seqlock_write_unlock() may be used.
+
+Reading is done with seqlock_read_lock()/seqlock_read_unlock() and
+will execute the code between the these calls repeatedly until a
+clean read is achieved (i.e. a consistent read that wasn't disturbed
+by writers).
+
+All three pairs of calls expand to beginning and end of a code block
+and so they must reside within the same function and at the same
+lexical nesting level.
+
+seqlock_t is an arithmetic type and should be initialized with zero
+before use.
+
+Defining KROKI_SEQLOCK_NOPOLLUTE will result in omitting alias
+definitions, but functionality will still be available with the
+namespace prefix 'kroki_'.
+
+Implementation requires GCC 4.7.3+.
+
+On IA-64 (i.e. Itanium CPUs, this is _not_ x86-64) writing and
+reading of user data must be wrapped in __atomic_store_n() and
+__atomic_load_n() respectively (__ATOMIC_RELAXED memory model will
+suffice).  On other architectures plain store/load may be used.
